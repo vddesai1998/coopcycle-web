@@ -23,7 +23,11 @@ How to run a local instance
 
     - On OSX : use [Docker for Mac](https://www.docker.com/docker-mac) which will provide you both `docker` and `docker-compose`. It doesn't rely on Virtualbox as Docker used to.
 
-    - On Windows : use [Docker for Windows](https://www.docker.com/docker-windows) which will provide you both `docker` and `docker-compose`. It doesn't rely on Virtualbox as Docker used to.
+    - On Windows : use [Docker for Windows](https://www.docker.com/docker-windows) which will provide you both `docker` and `docker-compose`. Depending on your platform, Docker could be installed as Native or you have to install Docker toolbox which use VirtualBox instead of Hyper-V causing a lot a differences in implementations. If you hace the luck to have a CPU that support native Dockern you can [share your hard disk as a virtual volume for your appliances](https://blogs.msdn.microsoft.com/stevelasker/2016/06/14/configuring-docker-for-windows-volumes/).
+
+    You will need to download openssl for generating certificates.
+    http://gnuwin32.sourceforge.net/packages/openssl.htm
+    The make script suppose that both are found [in your Path environment variable](https://www.computerhope.com/issues/ch000549.htm).
 
     - On Linux : follow [the instructions for your distribution](https://docs.docker.com/engine/installation/). `docker-compose` binary is to be installed independently. You can use CoopCycle without root privileges, to do so run `sudo usermod -aG docker your-user` (will add you to the `docker` group).
 
@@ -48,11 +52,16 @@ sudo chown -R $(id -u):82 coopcycle-web
 sudo chmod -R g+w coopcycle-web
 ```
 
-* Run the install scripts.
+* Get [a Google Map API Key](https://developers.google.com/maps/documentation/javascript/get-api-key#key) and copy it. You will be asked for it when running `make install`.
 
+* [Create a Stripe account](https://dashboard.stripe.com/register) and copy your tests credentials. You will be asked for them when running `make install`.
+
+* Run the install scripts - when asked for `app/config/parameters.yml` parameters please enter your Google (`google_api_key`) and Stripe test (`stripe_secret_key` and `stripe_publishable_key`) credentials, for others you can keep defaults.
 ```sh
 make install
 ```
+
+* On Windows: run `powershell make.ps1` in powershell.
 
 ### Run the application
 
