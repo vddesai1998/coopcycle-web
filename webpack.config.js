@@ -23,6 +23,7 @@ Encore
   .addEntry('js/common', ['babel-polyfill', './js/app/common.js'])
   .addEntry('js/dashboard', './js/app/dashboard/index.jsx')
   .addEntry('js/cart', './js/app/cart/index.jsx')
+  .addEntry('js/cart-redux', './js/app/cart/index.js')
   .addEntry('js/delivery-form', './js/app/delivery/form.jsx')
   .addEntry('js/delivery-list', './js/app/delivery/list.jsx')
   .addEntry('js/delivery-pricing-rules', './js/app/delivery/pricing-rules.jsx')
