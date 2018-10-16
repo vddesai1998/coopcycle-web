@@ -213,11 +213,6 @@ new CoopCycle.OpeningHoursParser(document.querySelector('#opening-hours'), {
   locale: $('html').attr('lang')
 });
 
-// $('form[data-product-simple]').on('submit', function(e) {
-//   e.preventDefault();
-//   window.AppData.CartHelper.addProduct($(this).attr('action'), 1);
-// });
-
 // Make sure all (non-additional) options have been checked
 $('form[data-product-options] input[type="radio"]').on('click', function(e) {
 
@@ -282,7 +277,7 @@ function initMap() {
 
   var cart = new CoopCycle.Cart(document.querySelector('#cart-redux'), preloadedState);
 
-  $('form.list-group-item').on('submit', function(e) {
+  $('form[data-product-simple]').on('submit', function(e) {
     e.preventDefault();
     cart.addItem($(this).attr('action'));
   });

@@ -24,8 +24,6 @@ class Cart extends Component {
       btnClasses.push('disabled')
     }
 
-    console.log(this.props.availabilities);
-
     return (
       <Sticky top={ 30 }>
         <div className={ panelClasses.join(' ') }>
