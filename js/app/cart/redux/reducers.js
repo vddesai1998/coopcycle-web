@@ -17,6 +17,7 @@ const initialState = {
   errors: [],
   errorsKeys: [],
   availabilities: [],
+  adjustments: {}
 }
 
 const isFetching = (state = initialState.isFetching, action = {}) => {
@@ -115,6 +116,13 @@ const availabilities = (state = initialState.availabilities, action = {}) => {
   }
 }
 
+const adjustments = (state = initialState.adjustments, action = {}) => {
+  switch (action.type) {
+    default:
+      return state
+  }
+}
+
 export default combineReducers({
   isFetching,
   items,
@@ -124,4 +132,5 @@ export default combineReducers({
   errors,
   errorsKeys,
   availabilities,
+  adjustments,
 })

@@ -6,11 +6,27 @@ import CartItem from './CartItem'
 
 class CartTotal extends React.Component {
 
+  renderAdjustments() {
+
+    const { adjustments } = this.props
+
+    if (adjustments.hasOwnProperty('delivery')) {
+      return (
+        <div>
+          { adjustments.delivery.map(adjustment =>
+            <div key={ adjustment.id }>
+              <span>{ adjustment.label }</span>
+              <strong className="pull-right">{ (adjustment.amount / 100).formatMoney(2, window.AppData.currencySymbol) }</strong>
+            </div>
+          )}
+        </div>
+      )
+    }
+  }
+
   render() {
 
     const { total, itemsTotal } = this.props
-
-    // TODO Render adjustments
 
     if (itemsTotal > 0) {
       return (
@@ -19,6 +35,7 @@ class CartTotal extends React.Component {
             <span>{ this.props.t('CART_TOTAL_PRODUCTS') }</span>
             <strong className="pull-right">{ (itemsTotal / 100).formatMoney(2, window.AppData.currencySymbol) }</strong>
           </div>
+          { this.renderAdjustments() }
           <div>
             <span>{ this.props.t('CART_TOTAL') }</span>
             <strong className="pull-right">{ (total / 100).formatMoney(2, window.AppData.currencySymbol) }</strong>
@@ -38,6 +55,7 @@ function mapStateToProps (state) {
   return {
     itemsTotal: state.itemsTotal,
     total: state.total,
+    adjustments: state.adjustments,
   }
 }
 
