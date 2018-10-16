@@ -275,8 +275,9 @@ function initMap() {
 
   var preloadedState = {{ cart_provider.normalize(cart)|json_encode()|raw }};
 
-  preloadedState = Object.assign(preloadedState, {
+  preloadedState = $.extend(preloadedState, {
     removeFromCartURL: "{{ path('restaurant_remove_from_cart', { id: restaurant.id, cartItemId: '__CART_ITEM_ID__' }) }}",
+    availabilities: {{ availabilities|json_encode()|raw }}
   });
 
   var cart = new CoopCycle.Cart(document.querySelector('#cart-redux'), preloadedState);
@@ -286,6 +287,7 @@ function initMap() {
     cart.addItem($(this).attr('action'));
   });
 
+  /*
   window.AppData.CartHelper.init(document.querySelector('#cart'), {
     restaurant: {
       id: {{ restaurant.id }},
@@ -303,6 +305,7 @@ function initMap() {
       longitude: document.querySelector("#{{ cart_form.shippingAddress.longitude.vars.id }}")
     }
   });
+  */
 }
 
 </script>

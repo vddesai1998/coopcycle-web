@@ -16,6 +16,7 @@ const initialState = {
   removeFromCartURL: '',
   errors: [],
   errorsKeys: [],
+  availabilities: [],
 }
 
 const isFetching = (state = initialState.isFetching, action = {}) => {
@@ -107,6 +108,13 @@ const errorsKeys = (state = initialState.errorsKeys, action = {}) => {
   }
 }
 
+const availabilities = (state = initialState.availabilities, action = {}) => {
+  switch (action.type) {
+    default:
+      return state
+  }
+}
+
 export default combineReducers({
   isFetching,
   items,
@@ -115,4 +123,5 @@ export default combineReducers({
   removeFromCartURL,
   errors,
   errorsKeys,
+  availabilities,
 })

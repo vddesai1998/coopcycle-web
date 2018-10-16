@@ -17,6 +17,11 @@ const middlewares = [ thunk ]
 // export default store
 
 export const createStoreFromPreloadedState = preloadedState => {
+
+  console.log(preloadedState)
+
+  console.log(reducers);
+
   return createStore(
     reducers,
     preloadedState,

@@ -8,7 +8,7 @@ import md5 from 'locutus/php/strings/md5'
 
 import i18n from '../i18n'
 import CartItem from './CartItem.jsx'
-import DatePicker from './DatePicker.jsx'
+import DatePicker from './components/DatePicker'
 import AddressPicker from '../components/AddressPicker.jsx'
 
 let timeoutID = null
