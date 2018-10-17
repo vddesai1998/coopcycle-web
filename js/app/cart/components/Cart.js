@@ -4,6 +4,7 @@ import { translate } from 'react-i18next'
 import Sticky from 'react-stickynode'
 import _ from 'lodash'
 
+import AddressModal from './AddressModal'
 import AddressPicker from '../../components/AddressPicker'
 import CartErrors from './CartErrors'
 import CartItems from './CartItems'
@@ -20,8 +21,13 @@ class Cart extends Component {
     const panelClasses = ['panel', 'panel-default']
 
     const btnClasses = ['btn', 'btn-block', 'btn-primary']
+    let btnProps = {}
     if (items.length === 0 || loading) {
       btnClasses.push('disabled')
+      btnProps = {
+        ...btnProps,
+        disabled: true
+      }
     }
 
     return (
@@ -47,12 +53,13 @@ class Cart extends Component {
               <hr />
               <CartTotal />
               <hr />
-              <button type="submit" className={ btnClasses.join(' ') }>
+              <button type="submit" className={ btnClasses.join(' ') } { ...btnProps }>
                 <span>{ this.props.loading && <i className="fa fa-spinner fa-spin"></i> }</span>  <span>{ this.props.t('CART_WIDGET_BUTTON') }</span>
               </button>
             </div>
           </div>
         </div>
+        <AddressModal />
       </Sticky>
     );
   }
