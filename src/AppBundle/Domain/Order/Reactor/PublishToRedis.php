@@ -23,6 +23,7 @@ class PublishToRedis
 
         $channel = sprintf('order:%d:events', $order->getId());
 
+        // TODO Add username (or "owner") to event payload to allow filtering events
         $message = [
             'name' => $event::messageName(),
             'data' => $event->toPayload(),
