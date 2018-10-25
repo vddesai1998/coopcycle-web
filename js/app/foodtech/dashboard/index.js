@@ -8,11 +8,17 @@ import store from './redux/store'
 import { createStoreFromPreloadedState } from './redux/store'
 import Dashboard from './components/Dashboard'
 
-const hostname = window.location.hostname,
-      socket = io('//' + hostname, { path: '/tracking/socket.io' })
+const hostname = window.location.hostname;
 
 window.CoopCycle = window.CoopCycle || {}
 window.CoopCycle.FoodtechDashboard = (el, preloadedState) => {
+
+  const socket = io('//' + hostname, {
+    path: '/tracking/socket.io',
+    extraHeaders: {
+      Authorization: `Bearer ${preloadedState.jwt}`
+    }
+  })
 
   const store = createStoreFromPreloadedState(preloadedState)
 

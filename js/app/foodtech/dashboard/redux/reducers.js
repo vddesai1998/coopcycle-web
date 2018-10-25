@@ -17,7 +17,8 @@ import {
 const initialState = {
   orders: [],
   order: null,
-  date: moment().format('YYYY-MM-DD')
+  date: moment().format('YYYY-MM-DD'),
+  jwt: ''
 }
 
 function replaceOrder(orders, order) {
@@ -103,8 +104,17 @@ const date = (state = initialState.date, action) => {
   }
 }
 
+const jwt = (state = initialState.jwt, action) => {
+  switch (action.type) {
+    default:
+
+      return state
+  }
+}
+
 export default combineReducers({
   orders,
   order,
   date,
+  jwt,
 })
