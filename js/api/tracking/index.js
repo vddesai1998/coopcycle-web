@@ -97,6 +97,12 @@ const channels = {
     psubscribe: false,
     // TODO
     // Forward to admins + restaurant owner
+    rooms: (message) => {
+      return [
+        'admins',
+        `restaurant:${message.restaurant.id}`
+      ]
+    }
   }
 }
 
@@ -104,7 +110,7 @@ sub.on('subscribe', (channel, count) => {
   winston.info(`Subscribed to ${channel} (${count})`)
   if (count === _.size(channels)) {
     winston.info('Subscribed to all channels!');
-    server.listen(process.env.PORT || 8001);
+    initialize()
   }
 })
 
@@ -112,7 +118,7 @@ sub.on('psubscribe', (channel, count) => {
   winston.info(`Subscribed to ${channel} (${count})`)
   if (count === _.size(channels)) {
     winston.info('Subscribed to all channels!');
-    server.listen(process.env.PORT || 8001);
+    initialize()
   }
 })
 
@@ -126,10 +132,7 @@ _.each(channels, (options, channel) => {
   }
 })
 
-io
-.use(function(socket, next) {
-
-  console.log('SOCKET HANDSHAKE')
+const authMiddleware = function(socket, next) {
 
   // @see https://stackoverflow.com/questions/36788831/authenticating-socket-io-connections
 
@@ -151,53 +154,32 @@ io
   } else {
     next(new Error('Authentication error'));
   }
-})
-.on('connect', function (socket) {
+}
 
-  console.log('socket.id', socket.id)
-  console.log('socket.user', socket.user.toJSON())
-
-  // TODO
-  // When ROLE_RESTAURANT, load managed restaurants
-
-  // Add admins to dedicated room
-  if (_.includes(socket.user.roles, 'ROLE_ADMIN')) {
-    socket.join('admins', (err) => {
-      if (!err) {
-        console.log(`user "${socket.user.username}" joined room "admins"`)
-      }
-    })
-  }
-
-  // @see https://stackoverflow.com/questions/6563885/socket-io-how-do-i-get-a-list-of-connected-sockets-clients
-  // @see https://socket.io/docs/emit-cheatsheet/
-  // io.clients((error, clients) => {
-  //   // if (error) throw error;
-  //   console.log('clients', clients); // => [6em3d4TJP8Et9EMNAAAA, G5p55dHhGgUnLUctAAAB]
-  //   clients.forEach((id) => {
-  //     io.in(id)
-  //   })
-  // });
-
-  // console.log(io.sockets.sockets)
-
-    //
+function initialize() {
 
   sub.on('message', function(channelWithPrefix, message) {
 
     winston.debug(`Received message on channel ${channelWithPrefix}`)
 
     const channel = sub.unprefixedChannel(channelWithPrefix)
-    const { toJSON } = channels[channel]
+    const { toJSON, rooms } = channels[channel]
 
     // console.log('io.sockets', io.sockets)
 
-    io.in('admins').clients((err, clients) => {
-      console.log('clients in room admins', clients);
-    });
 
-    // Send event to room "admins"
-    io.in('admins').emit(channel, toJSON ? JSON.parse(message) : message);
+
+    message = toJSON ? JSON.parse(message) : message
+
+    // console.log('RESOLVED ROOMS', rooms(message))
+
+    // io.in(rooms(message)).clients((err, clients) => {
+    //   console.log('clients in rooms', clients);
+    // });
+
+    // io.in(rooms(message)).emit(channel, message);
+
+    rooms(message).forEach(room => io.in(room).emit(channel, message))
 
     // io.sockets.emit(channel, toJSON ? JSON.parse(message) : message)
 
@@ -215,4 +197,49 @@ io
 
   })
 
-})
+  io
+    .use(authMiddleware)
+    .on('connect', function (socket) {
+
+      console.log('socket.id', socket.id)
+      console.log('socket.user', socket.user.toJSON())
+
+      // When ROLE_RESTAURANT, load managed restaurants
+      if (_.includes(socket.user.roles, 'ROLE_RESTAURANT')) {
+        socket.user.getRestaurants()
+          .then(restaurants => {
+            restaurants.forEach(restaurant => {
+              const roomName = `restaurant:${restaurant.get('id')}`
+              socket.join(roomName, (err) => {
+                if (!err) {
+                  console.log(`user "${socket.user.username}" joined room "${roomName}"`)
+                }
+              })
+            })
+          })
+      }
+
+      // Add admins to dedicated room
+      if (_.includes(socket.user.roles, 'ROLE_ADMIN')) {
+        socket.join('admins', (err) => {
+          if (!err) {
+            console.log(`user "${socket.user.username}" joined room "admins"`)
+          }
+        })
+      }
+
+      // @see https://stackoverflow.com/questions/6563885/socket-io-how-do-i-get-a-list-of-connected-sockets-clients
+      // @see https://socket.io/docs/emit-cheatsheet/
+      // io.clients((error, clients) => {
+      //   // if (error) throw error;
+      //   console.log('clients', clients); // => [6em3d4TJP8Et9EMNAAAA, G5p55dHhGgUnLUctAAAB]
+      //   clients.forEach((id) => {
+      //     io.in(id)
+      //   })
+      // });
+
+    })
+
+  server.listen(process.env.PORT || 8001);
+
+}

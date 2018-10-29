@@ -20,10 +20,18 @@ var initUsers = function() {
   return new Promise(function(resolve, reject) {
     Promise.all([
       utils.createUser('bill', ['ROLE_USER']),
-      utils.createUser('sarah', ['ROLE_ADMIN'])
+      utils.createUser('sarah', ['ROLE_ADMIN']),
+      utils.createUser('will', ['ROLE_RESTAURANT']),
     ])
     .then(function(users) {
-      resolve()
+      const [ bill, sarah, will ] = users
+      utils
+        .createRestaurant('foo', { latitude: 48.856613, longitude: 2.352222 })
+        .then(restaurant => {
+          will.addRestaurant(restaurant).then(() => {
+            resolve()
+          })
+        })
     })
     .catch(function(e) {
       reject(e)
@@ -97,28 +105,80 @@ describe('Connect to Socket.IO', function() {
 
     return new Promise(function (resolve, reject) {
 
-      var token = utils.createJWT('sarah');
+      utils.db.Restaurant.findOne({
+        where: { name: 'foo' }
+      }).then(restaurant => {
 
-      var socket = io.connect('http://127.0.0.1:8001', {
-        path: '/tracking/socket.io',
-        forceNew: true,
-        transports: ['websocket'],
-        extraHeaders: {
-          Authorization: `Bearer ${token}`
+        var token = utils.createJWT('sarah');
+
+        var socket = io.connect('http://127.0.0.1:8001', {
+          path: '/tracking/socket.io',
+          forceNew: true,
+          transports: ['websocket'],
+          extraHeaders: {
+            Authorization: `Bearer ${token}`
+          }
+        })
+
+        var order = {
+          customer: 'bill',
+          restaurant: {
+            id: restaurant.get('id')
+          },
         }
+
+        socket.on('connect', function() {
+          pub.prefixedPublish('order:created', JSON.stringify(order))
+        })
+
+        socket.on('order:created', function(message) {
+          assert.deepEqual(order, message);
+          resolve();
+        })
+
       })
 
-      var order = {
-        customer: 'bill'
-      }
+    })
+  })
 
-      socket.on('connect', function() {
-        pub.prefixedPublish('order:created', JSON.stringify(order))
-      })
+  it('should emit "order:created" message to user with role ROLE_RESTAURANT', function() {
 
-      socket.on('order:created', function(message) {
-        assert.deepEqual(order, message);
-        resolve();
+    this.timeout(3000)
+
+    return new Promise(function (resolve, reject) {
+
+      utils.db.Restaurant.findOne({
+        where: { name: 'foo' }
+      }).then(restaurant => {
+
+        var token = utils.createJWT('will');
+
+        var socket = io.connect('http://127.0.0.1:8001', {
+          path: '/tracking/socket.io',
+          forceNew: true,
+          transports: ['websocket'],
+          extraHeaders: {
+            Authorization: `Bearer ${token}`
+          }
+        })
+
+        var order = {
+          customer: 'bill',
+          restaurant: {
+            id: restaurant.get('id')
+          },
+        }
+
+        socket.on('connect', function() {
+          // Let some time for client to join room (because of database)
+          setTimeout(() => pub.prefixedPublish('order:created', JSON.stringify(order)), 750)
+        })
+
+        socket.on('order:created', function(message) {
+          assert.deepEqual(order, message);
+          resolve();
+        })
+
       })
 
     })
@@ -142,7 +202,10 @@ describe('Connect to Socket.IO', function() {
       })
 
       var order = {
-        customer: 'bill'
+        customer: 'bill',
+        restaurant: {
+          id: 1
+        }
       }
 
       socket.on('connect', function() {
