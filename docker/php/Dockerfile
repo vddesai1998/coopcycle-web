@@ -23,6 +23,10 @@ RUN set -xe \
         freetype-dev \
         libpng-dev \
         libjpeg-turbo-dev \
+    && apk add --no-cache \
+        unzip \
+        chromium \
+        chromium-chromedriver \
     && apk add qt5-qtbase-dev \
         wkhtmltopdf \
         --no-cache \
@@ -73,6 +77,13 @@ RUN composer global require "hirak/prestissimo:^0.3" --prefer-dist --no-progress
     && composer clear-cache
 
 ENV COMPOSER_ALLOW_SUPERUSER 0
+
+ENV PANTHER_NO_SANDBOX 1
+
+# Use alternative binary for symfony/panther
+# https://github.com/symfony/panther/issues/54
+# https://github.com/symfony/panther/issues/121
+ENV PANTHER_CHROME_DRIVER_BINARY /usr/lib/chromium/chromedriver
 
 WORKDIR /srv/coopcycle
 
