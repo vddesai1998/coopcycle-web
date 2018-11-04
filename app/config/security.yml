@@ -27,6 +27,10 @@ security:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
 
+        oauth_token:
+            pattern:    ^/oauth/v2/token
+            security:   false
+
         api_login:
             pattern:  ^/api/login
             stateless: true
@@ -40,11 +44,12 @@ security:
         api_deliveries_create:
             pattern:   ^/api/deliveries
             methods: [ POST ]
+            fos_oauth:  true
             stateless: true
-            anonymous: ~
-            guard:
-                authenticators:
-                    - AppBundle\Security\StoreTokenAuthenticator
+            # anonymous: ~
+            # guard:
+            #     authenticators:
+            #         - AppBundle\Security\StoreTokenAuthenticator
 
         api_pricing_calculate_price:
             pattern:   ^/api/pricing/calculate-price

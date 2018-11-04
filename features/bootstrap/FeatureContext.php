@@ -29,6 +29,8 @@ use Carbon\Carbon;
 use libphonenumber\PhoneNumberUtil;
 use Fidry\AliceDataFixtures\LoaderInterface;
 
+use Symfony\Component\HttpFoundation\Request;
+
 /**
  * Defines application features from the specific context.
  */
@@ -85,6 +87,7 @@ class FeatureContext implements Context, SnippetAcceptingContext, KernelAwareCon
         $this->httpCallResultPool = $httpCallResultPool;
         $this->phoneNumberUtil = $phoneNumberUtil;
         $this->fixturesLoader = $fixturesLoader;
+
     }
 
     public function setKernel(KernelInterface $kernel)
@@ -113,7 +116,7 @@ class FeatureContext implements Context, SnippetAcceptingContext, KernelAwareCon
     public function clearData()
     {
         $purger = new ORMPurger($this->doctrine->getManager());
-        $purger->purge();
+        // $purger->purge();
     }
 
     /**
@@ -134,6 +137,26 @@ class FeatureContext implements Context, SnippetAcceptingContext, KernelAwareCon
     public function clearAuthentication()
     {
         $this->tokens = [];
+    }
+
+    /**
+     * @Given there is a OAuth client
+     */
+    public function createOAuthClient()
+    {
+        // $this->tokens = [];
+        // var_dump('createOAuthClient');
+        // exi
+
+        $clientManager = $this->getContainer()->get('fos_oauth_server.client_manager.default');
+
+        $this->oAuthClient = $clientManager->createClient();
+        $this->oAuthClient->setAllowedGrantTypes(array('client_credentials'));
+        // $client->setRedirectUris(array('http://www.example.com'));
+
+        $clientManager->updateClient($this->oAuthClient);
+
+        // $this->oAuthClient = $client;
     }
 
     /**
@@ -345,21 +368,18 @@ class FeatureContext implements Context, SnippetAcceptingContext, KernelAwareCon
     }
 
     /**
-     * @When I send an authenticated :method request to :url
+     * @Given the user :username is authenticated via OAuth
      */
-    public function iSendAnAuthenticatedRequestTo($method, $url, PyStringNode $body = null)
+    public function theUserIsAuthenticatedViaOauth($username)
     {
-        $this->restContext->iAddHeaderEqualTo('Authorization', 'Bearer ' . $this->jwt);
-        $this->restContext->iSendARequestTo($method, $url, $body);
-    }
+        $userManager = $this->getContainer()->get('fos_user.user_manager');
+        $oAuthServer = $this->getContainer()->get('fos_oauth_server.server');
 
-    /**
-     * @When I send an authenticated :method request to :url with body:
-     */
-    public function iSendAnAuthenticatedRequestToWithBody($method, $url, PyStringNode $body)
-    {
-        $this->restContext->iAddHeaderEqualTo('Authorization', 'Bearer ' . $this->jwt);
-        $this->restContext->iSendARequestTo($method, $url, $body);
+        $user = $userManager->findUserByUsername($username);
+
+        $token = $oAuthServer->createAccessToken($this->oAuthClient, null);
+
+        $this->tokens[$username] = $token['access_token'];
     }
 
     /**

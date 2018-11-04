@@ -1,12 +1,15 @@
 Feature: Deliveries
 
+  @debug
   Scenario: Create delivery with pickup & dropoff
     Given the fixtures file "stores.yml" is loaded
+    And there is a OAuth client
     And the user "bob" is loaded:
       | email      | bob@coopcycle.org |
       | password   | 123456            |
-    And the store with name "Acme" belongs to user "bob"
-    And the store with name "Acme" is authenticated as "bob"
+    And the user "bob" is authenticated via OAuth
+    # And the store with name "Acme" belongs to user "bob"
+    # And the store with name "Acme" is authenticated as "bob"
     When I add "Content-Type" header equal to "application/ld+json"
     And I add "Accept" header equal to "application/ld+json"
     And the user "bob" sends a "POST" request to "/api/deliveries" with body:
