@@ -322,3 +322,12 @@ fos_js_routing:
         - admin_order_refuse
         - admin_order_cancel
         - admin_order_delay
+
+fos_oauth_server:
+    db_driver: orm
+    client_class:        AppBundle\Entity\OAuth\Client
+    access_token_class:  AppBundle\Entity\OAuth\AccessToken
+    refresh_token_class: AppBundle\Entity\OAuth\RefreshToken
+    auth_code_class:     AppBundle\Entity\OAuth\AuthCode
+    service:
+        user_provider: fos_user.user_provider.username_email

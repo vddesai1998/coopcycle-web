@@ -1,0 +1,9 @@
+AppBundle\Entity\OAuth\Client:
+    type: entity
+    table: oauth_client
+    id:
+        id:
+            type: integer
+            id: true
+            generator:
+                strategy: IDENTITY

@@ -54,6 +54,7 @@ class AppKernel extends Kernel
             new Fidry\AliceDataFixtures\Bridge\Symfony\FidryAliceDataFixturesBundle(),
             new Hautelook\AliceBundle\HautelookAliceBundle(),
             new FOS\JsRoutingBundle\FOSJsRoutingBundle(),
+            new FOS\OAuthServerBundle\FOSOAuthServerBundle(),
         ];
 
         if (in_array($this->getEnvironment(), ['dev', 'test'], true)) {
