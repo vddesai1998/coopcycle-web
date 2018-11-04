@@ -116,7 +116,7 @@ class FeatureContext implements Context, SnippetAcceptingContext, KernelAwareCon
     public function clearData()
     {
         $purger = new ORMPurger($this->doctrine->getManager());
-        // $purger->purge();
+        $purger->purge();
     }
 
     /**
@@ -380,6 +380,18 @@ class FeatureContext implements Context, SnippetAcceptingContext, KernelAwareCon
         $token = $oAuthServer->createAccessToken($this->oAuthClient, null);
 
         $this->tokens[$username] = $token['access_token'];
+    }
+
+    /**
+     * @Given the HTTP client is authenticated via OAuth Client Credentials
+     */
+    public function theHTTPClientIsAuthenticatedViaOauthClientCredentials()
+    {
+        $oAuthServer = $this->getContainer()->get('fos_oauth_server.server');
+
+        $token = $oAuthServer->createAccessToken($this->oAuthClient, null);
+
+        $this->restContext->iAddHeaderEqualTo('Authorization', 'Bearer ' . $token['access_token']);
     }
 
     /**
