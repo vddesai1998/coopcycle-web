@@ -46,7 +46,12 @@ security:
             methods: [ POST ]
             fos_oauth:  true
             stateless: true
-            # anonymous: ~
+            anonymous: ~
+            # guard:
+            #     authenticators:
+            #         # - coopcycle.security.oauth_token_authenticator
+            #         - lexik_jwt_authentication.jwt_token_authenticator
+                # entry_point: coopcycle.security.oauth_token_authenticator
             # guard:
             #     authenticators:
             #         - AppBundle\Security\StoreTokenAuthenticator
@@ -101,6 +106,7 @@ security:
         - { path: ^/profile/restaurants, roles: ROLE_RESTAURANT }
         - { path: ^/profile, roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/admin, roles: ROLE_ADMIN }
+        # - { path: ^/api/deliveries, roles: IS_AUTHENTICATED_ANONYMOUSLY, methods: [ POST ] }
         - { path: ^/api/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/api/routing, roles: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/api/settings, roles: IS_AUTHENTICATED_ANONYMOUSLY }

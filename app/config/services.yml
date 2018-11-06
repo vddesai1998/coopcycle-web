@@ -637,6 +637,13 @@ services:
     parent: lexik_jwt_authentication.jwt_token_authenticator.not_expiring
     arguments: [ '@doctrine' ]
 
+  'coopcycle.security.oauth_token_authenticator':
+    class: AppBundle\Security\OAuthTokenAuthenticator
+    arguments:
+      - '@fos_oauth_server.server'
+      - '@security.helper'
+      - '@fos_user.user_manager'
+
   # The services below are needed to generate tokens that never expire
   # @see https://github.com/lexik/LexikJWTAuthenticationBundle/issues/521
 
