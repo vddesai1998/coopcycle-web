@@ -17,8 +17,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@babel/polyfill": "^7.0.0",
     "@mapbox/polyline": "^0.2.0",
-    "babel-polyfill": "^6.26.0",
     "co": "^4.6.0",
     "coopcycle-js": "git+https://git@github.com/coopcycle/coopcycle-js.git",
     "deepmerge": "^1.5.2",
@@ -46,12 +46,12 @@
     "xml2js": "^0.4.19"
   },
   "devDependencies": {
+    "@babel/plugin-proposal-object-rest-spread": "^7.0.0",
     "@babel/preset-react": "^7.0.0",
     "@symfony/webpack-encore": "0.21.*",
     "@tweenjs/tween.js": "^16.11.0",
     "antd": "^3.9.2",
     "autoprefixer": "^9.1.5",
-    "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "beautifymarker": "git+https://git@github.com/alexsegura/BeautifyMarker.git",
     "bootstrap-sass": "^3.3.7",
     "chai": "^4.1.2",

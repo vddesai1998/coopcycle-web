@@ -2,13 +2,13 @@
   "presets": [
     ["@babel/preset-env", {
       "modules": false,
-      "useBuiltIns": "entry",
+      "useBuiltIns": "usage",
       "debug": true
     }],
     "@babel/preset-react"
   ],
   "plugins": [
-    "transform-object-rest-spread"
+    "@babel/plugin-proposal-object-rest-spread"
   ],
   "env": {
     "test": {

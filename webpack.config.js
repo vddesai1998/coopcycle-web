@@ -1,5 +1,4 @@
 var Encore = require('@symfony/webpack-encore')
-var CopyWebpackPlugin = require('copy-webpack-plugin')
 
 Encore
 
@@ -20,7 +19,7 @@ Encore
   //   'react-dom',
   //   'whatwg-fetch'
   // ])
-  .addEntry('js/common', ['babel-polyfill', './js/app/common.js'])
+  .addEntry('js/common', './js/app/common.js')
   .addEntry('js/dashboard', './js/app/dashboard/index.jsx')
   .addEntry('js/cart', './js/app/cart/index.jsx')
   .addEntry('js/delivery-form', './js/app/delivery/form.jsx')
@@ -66,13 +65,6 @@ webpackConfig.devServer = {
     poll: 1000
   }
 }
-
-webpackConfig.plugins.push(new CopyWebpackPlugin([
-  {
-    from: 'node_modules/coopcycle-js/build/coopcycle.js',
-    to: 'js/coopcycle.js'
-  }
-]))
 
 webpackConfig.stats = {
   source: false,
