@@ -1,18 +1,11 @@
 {
   "presets": [
-    ["env", {
+    ["@babel/preset-env", {
       "modules": false,
-      "targets": {
-        "browsers": [
-          "> 5%",
-          "ie >= 11"
-        ],
-        "uglify": true
-      },
-      "useBuiltIns": true,
+      "useBuiltIns": "entry",
       "debug": true
     }],
-    "react"
+    "@babel/preset-react"
   ],
   "plugins": [
     "transform-object-rest-spread"
@@ -20,7 +13,7 @@
   "env": {
     "test": {
       "presets": [
-        ["env", {
+        ["@babel/preset-env", {
           "targets": {
             "node": "current",
           }
