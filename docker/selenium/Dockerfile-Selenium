@@ -1,0 +1,11 @@
+FROM node:8.11-alpine
+
+RUN apk update && apk add --no-cache git
+RUN npm install
+RUN npm install -g selenium-side-runner
+
+
+COPY *.side /
+COPY .side.yml /
+
+CMD ["selenium-side-runner","*.side","--server","http://localhost:4444/wd/hub"] 
