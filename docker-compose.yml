@@ -112,6 +112,19 @@ services:
     ports:
       - '12111:12111'
 
+  zalenium:
+    image: dosel/zalenium
+    tty: true
+    volumes:
+      - /tmp/videos:/home/seluser/videos
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 4444:4444
+    command: >
+      start
+    environment:
+      - PULL_SELENIUM_IMAGE=true
+
 volumes:
   node_modules:
   pg_data:
