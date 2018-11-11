@@ -102,6 +102,37 @@ make behat
 make mocha
 ```
 
+* Copy or create selenium-side-runner container
+
+Copy or generated with [selenium IDE](https://www.seleniumhq.org/projects/ide/).side files in the folder docker/selenium
+
+Update the hidden file .side.env with required capabilities for your tests see official doc: [selenium-side-runner](https://www.npmjs.com/package/selenium-side-runner)
+
+Build a selenium-side-runner image:
+```
+docker build -f Dockerfile-Selenium -t your_selenium-runner_name .
+```
+
+* Run GUI selenium-side-runner tests:
+
+First install [Zalenium](https://opensource.zalando.com/zalenium/)
+```
+# Pull docker-selenium
+docker pull elgalu/selenium
+
+# Pull Zalenium
+docker pull dosel/zalenium
+```
+Then run Zalenium with the network option --network="host"
+
+```
+docker run --rm -ti --name zalenium --network="host" -p 4444:4444 -v /var/run/docker.sock:/var/run/docker.sock -v /tmp/videos:/home/seluser/videos --privileged dosel/zalenium start
+```
+Then run your selenium-side-runner container with the same network option --network="host"
+```
+docker run --network="host" your_selenium-side-runner_name
+```
+
 Running migrations
 -------
 
