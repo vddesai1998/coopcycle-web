@@ -27,7 +27,7 @@ if ($dockerBridgeIp = getenv('DOCKER_BRIDGE_IP')) {
 $loader = require __DIR__.'/../app/autoload.php';
 Debug::enable();
 
-$kernel = new AppKernel(getenv('SYMFONY_ENV') ?? 'dev', true);
+$kernel = new AppKernel('test', true);
 $request = Request::createFromGlobals();
 $response = $kernel->handle($request);
 $response->send();
