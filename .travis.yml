@@ -23,6 +23,7 @@ env:
     - STRIPE_MOCK_API_BASE=http://localhost:12111
     - SYMFONY_ENV=test
     - NODE_ENV=test
+    - BEHAT_PARAMS='{"extensions":{"Behat\\MinkExtension":{"base_url":"http://127.0.0.1:8080","sessions":{"selenium2":{"selenium2":{"wd_host":"http://localhost:4444/wd/hub"}}}}}}'
 
 before_install:
   - sudo apt-get update -qq
