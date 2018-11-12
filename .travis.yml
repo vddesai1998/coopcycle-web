@@ -41,6 +41,7 @@ install:
   - docker run -t -v $(pwd)/var/osrm:/data osrm/osrm-backend:latest osrm-customize /data/paris-france.osrm
   - docker run -t -v $(pwd)/var/osrm:/data -d -p 5000:5000 osrm/osrm-backend:latest osrm-routed --algorithm mld /data/paris-france.osrm
   - docker run -t -d -p 12111:12111 stripemock/stripe-mock
+  - docker run --rm -ti -p 4444:4444 -e PULL_SELENIUM_IMAGE=true -v /var/run/docker.sock:/var/run/docker.sock --privileged dosel/zalenium start
 
 before_script:
   - phpenv config-rm xdebug.ini
