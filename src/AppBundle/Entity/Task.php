@@ -4,6 +4,7 @@ namespace AppBundle\Entity;
 
 use AppBundle\Action\Task\Done as TaskDone;
 use AppBundle\Action\Task\Failed as TaskFailed;
+use AppBundle\Action\Task\UnassignedTasks;
 use AppBundle\Entity\Task\Group as TaskGroup;
 use AppBundle\Entity\Model\TaggableInterface;
 use AppBundle\Entity\Model\TaggableTrait;
@@ -31,6 +32,12 @@ use Symfony\Component\Validator\Constraints as Assert;
  *           "type" = "string"
  *         }}
  *       }
+ *     },
+ *     "unassigned_tasks"={
+ *       "method"="GET",
+ *       "path"="/tasks/{date}/unassigned",
+ *       "controller"=UnassignedTasks::class,
+ *       "access_control"="is_granted('ROLE_ADMIN')"
  *     }
  *   },
  *   itemOperations={
