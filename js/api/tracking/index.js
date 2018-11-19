@@ -36,8 +36,6 @@ const tokenVerifier = new TokenVerifier(cert, db)
 
 const io = require('socket.io')(server, { path: '/tracking/socket.io' });
 
-let subscribed = false;
-
 const channels = {
   'online': {
     toJSON: false,
@@ -74,23 +72,6 @@ const channels = {
     psubscribe: false,
     rooms: (message) => ['admins'],
   },
-  // FIXME
-  // Now that only authorized users will receive events, PSUBSCRIBE is useless
-  // Instead, use the event name as channel name, and serialize the whole order
-  // 'restaurant:*:orders': {
-  //   toJSON: true,
-  //   psubscribe: true,
-  //   rooms: (message) => [
-  //     'admins',
-  //     `restaurants:${message.restaurant.id}`
-  //   ],
-  // },
-  // 'order:*:events': {
-  //   toJSON: true,
-  //   psubscribe: true,
-  //   // TODO Send to admins, restaurant owners & customer
-  //   rooms: (message) => ['admins'],
-  // },
   // 'user:*:notifications': {
   //   toJSON: true,
   //   psubscribe: true
