@@ -18,9 +18,10 @@ var pub = require('../api/RedisClient')({
 var initUsers = function() {
   return new Promise(function(resolve, reject) {
     Promise.all([
-      utils.createUser('bill', ['ROLE_USER']),
-      utils.createUser('sarah', ['ROLE_ADMIN']),
-      utils.createUser('bob', ['ROLE_RESTAURANT']),
+      utils.createUser('bill',  ['ROLE_USER']),
+      utils.createUser('sarah', ['ROLE_USER', 'ROLE_ADMIN']),
+      utils.createUser('bob',   ['ROLE_USER', 'ROLE_RESTAURANT']),
+      utils.createUser('wendy', ['ROLE_USER']),
     ])
     .then(function(users) {
       const [ bill, sarah, bob ] = users
@@ -90,20 +91,15 @@ describe('Connect to Socket.IO', function() {
   });
 
   it('should connect successfully with valid JWT', function() {
-
     return new Promise((resolve, reject) => {
-
       var socket = createSocket('bill');
-
       socket.on('connect', function() {
         resolve();
       })
-
     })
   });
 
   it('should emit "order:created" message to user with role ROLE_ADMIN', function() {
-
     return new Promise((resolve, reject) => {
 
       utils.db.Restaurant.findOne({
@@ -136,9 +132,6 @@ describe('Connect to Socket.IO', function() {
   });
 
   it('should emit "order:created" message to user with role ROLE_RESTAURANT', function() {
-
-    this.timeout(3000)
-
     return new Promise((resolve, reject) => {
 
       utils.db.Restaurant.findOne({
@@ -207,9 +200,6 @@ describe('Connect to Socket.IO', function() {
     'order:fulfilled'
   ].forEach((eventName) => {
     it(`should emit "${eventName}" message to expected users`, function() {
-
-      this.timeout(2000)
-
       return new Promise((resolve, reject) => {
 
         const socketForBill = createSocket('bill')
@@ -240,6 +230,42 @@ describe('Connect to Socket.IO', function() {
           assert.deepEqual(order, messageForBill.order)
           assert.deepEqual(order, messageForSarah.order)
           resolve()
+        })
+
+      })
+    });
+  });
+
+  [
+    'order:accepted',
+    'order:picked',
+    'order:dropped',
+    'order:fulfilled'
+  ].forEach((eventName) => {
+    it(`should not emit "${eventName}" message to unexpected users`, function() {
+
+      this.timeout(2000)
+
+      return new Promise((resolve, reject) => {
+
+        const socket = createSocket('wendy')
+
+        const order = {
+          customer: {
+            username: 'bill'
+          },
+          restaurant: {
+            id: 1
+          },
+        }
+
+        socket.on('connect', function() {
+          pub.prefixedPublish(eventName, JSON.stringify({ order }))
+          setTimeout(resolve, 1500)
+        });
+
+        socket.on(eventName, function(message) {
+          reject(new Error('This event should not have been emitted'));
         })
 
       })
