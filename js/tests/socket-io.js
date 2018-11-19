@@ -1,6 +1,5 @@
 var assert = require('assert');
 var fs = require('fs');
-// var WebSocket = require('ws');
 var io = require('socket.io-client');
 
 var ConfigLoader = require('../api/ConfigLoader');
@@ -21,14 +20,14 @@ var initUsers = function() {
     Promise.all([
       utils.createUser('bill', ['ROLE_USER']),
       utils.createUser('sarah', ['ROLE_ADMIN']),
-      utils.createUser('will', ['ROLE_RESTAURANT']),
+      utils.createUser('bob', ['ROLE_RESTAURANT']),
     ])
     .then(function(users) {
-      const [ bill, sarah, will ] = users
+      const [ bill, sarah, bob ] = users
       utils
         .createRestaurant('foo', { latitude: 48.856613, longitude: 2.352222 })
         .then(restaurant => {
-          will.addRestaurant(restaurant).then(() => {
+          bob.addRestaurant(restaurant).then(() => {
             resolve()
           })
         })
@@ -59,7 +58,7 @@ describe('Connect to Socket.IO', function() {
         resolve()
       })
     })
-  })
+  });
 
   beforeEach('Cleaning db & initializing users', function() {
     this.timeout(30000)
@@ -71,7 +70,7 @@ describe('Connect to Socket.IO', function() {
           })
         })
     })
-  })
+  });
 
   it('should return authentication error without JWT', function() {
     return new Promise((resolve, reject) => {
@@ -88,29 +87,20 @@ describe('Connect to Socket.IO', function() {
       });
 
     })
-  })
+  });
 
   it('should connect successfully with valid JWT', function() {
 
     return new Promise((resolve, reject) => {
 
-      var token = utils.createJWT('bill');
-
-      var socket = io.connect('http://127.0.0.1:8001', {
-        path: '/tracking/socket.io',
-        forceNew: true,
-        transports: ['websocket'],
-        extraHeaders: {
-          Authorization: `Bearer ${token}`
-        }
-      })
+      var socket = createSocket('bill');
 
       socket.on('connect', function() {
         resolve();
       })
 
     })
-  })
+  });
 
   it('should emit "order:created" message to user with role ROLE_ADMIN', function() {
 
@@ -120,16 +110,7 @@ describe('Connect to Socket.IO', function() {
         where: { name: 'foo' }
       }).then(restaurant => {
 
-        const token = utils.createJWT('sarah');
-
-        const socket = io.connect('http://127.0.0.1:8001', {
-          path: '/tracking/socket.io',
-          forceNew: true,
-          transports: ['websocket'],
-          extraHeaders: {
-            Authorization: `Bearer ${token}`
-          }
-        })
+        const socket = createSocket('sarah');
 
         const order = {
           customer: {
@@ -152,7 +133,7 @@ describe('Connect to Socket.IO', function() {
       })
 
     })
-  })
+  });
 
   it('should emit "order:created" message to user with role ROLE_RESTAURANT', function() {
 
@@ -164,16 +145,7 @@ describe('Connect to Socket.IO', function() {
         where: { name: 'foo' }
       }).then(restaurant => {
 
-        const token = utils.createJWT('will');
-
-        const socket = io.connect('http://127.0.0.1:8001', {
-          path: '/tracking/socket.io',
-          forceNew: true,
-          transports: ['websocket'],
-          extraHeaders: {
-            Authorization: `Bearer ${token}`
-          }
-        })
+        const socket = createSocket('bob');
 
         const order = {
           customer: {
@@ -197,7 +169,7 @@ describe('Connect to Socket.IO', function() {
       })
 
     })
-  })
+  });
 
   it('should not emit "order:created" message to user with role ROLE_USER', function() {
 
@@ -205,16 +177,7 @@ describe('Connect to Socket.IO', function() {
 
     return new Promise((resolve, reject) => {
 
-      var token = utils.createJWT('bill');
-
-      var socket = io.connect('http://127.0.0.1:8001', {
-        path: '/tracking/socket.io',
-        forceNew: true,
-        transports: ['websocket'],
-        extraHeaders: {
-          Authorization: `Bearer ${token}`
-        }
-      })
+      const socket = createSocket('bill')
 
       var order = {
         customer: {
@@ -235,45 +198,52 @@ describe('Connect to Socket.IO', function() {
       })
 
     })
-  })
+  });
 
-  it('should emit "order:accepted" message to expected users', function() {
+  [
+    'order:accepted',
+    'order:picked',
+    'order:dropped',
+    'order:fulfilled'
+  ].forEach((eventName) => {
+    it(`should emit "${eventName}" message to expected users`, function() {
 
-    this.timeout(2000)
+      this.timeout(2000)
 
-    return new Promise((resolve, reject) => {
+      return new Promise((resolve, reject) => {
 
-      const socketForBill = createSocket('bill')
-      const socketForSarah = createSocket('sarah')
+        const socketForBill = createSocket('bill')
+        const socketForSarah = createSocket('sarah')
 
-      const order = {
-        customer: {
-          username: 'bill'
-        },
-        restaurant: {
-          id: 1
-        },
-      }
+        const order = {
+          customer: {
+            username: 'bill'
+          },
+          restaurant: {
+            id: 1
+          },
+        }
 
-      // Wait for all sockets to connect, and send message
-      Promise.all([
-        new Promise((resolve, reject) => socketForBill.on('connect', () => resolve())),
-        new Promise((resolve, reject) => socketForSarah.on('connect', () => resolve())),
-      ]).then(() => {
-        pub.prefixedPublish('order:accepted', JSON.stringify({ order }))
+        // Wait for all sockets to connect, and send message
+        Promise.all([
+          new Promise((resolve, reject) => socketForBill.on('connect', () => resolve())),
+          new Promise((resolve, reject) => socketForSarah.on('connect', () => resolve())),
+        ]).then(() => {
+          pub.prefixedPublish(eventName, JSON.stringify({ order }))
+        })
+
+        Promise.all([
+          new Promise((resolve, reject) => socketForBill.on(eventName, (message) => resolve(message))),
+          new Promise((resolve, reject) => socketForSarah.on(eventName, (message) => resolve(message))),
+        ]).then((messages) => {
+          const [ messageForBill, messageForSarah ] = messages
+          assert.deepEqual(order, messageForBill.order)
+          assert.deepEqual(order, messageForSarah.order)
+          resolve()
+        })
+
       })
-
-      Promise.all([
-        new Promise((resolve, reject) => socketForBill.on('order:accepted', (message) => resolve(message))),
-        new Promise((resolve, reject) => socketForSarah.on('order:accepted', (message) => resolve(message))),
-      ]).then((messages) => {
-        const [ messageForBill, messageForSarah ] = messages
-        assert.deepEqual(order, messageForBill.order)
-        assert.deepEqual(order, messageForSarah.order)
-        resolve()
-      })
-
-    })
-  })
+    });
+  });
 
 });
