@@ -19,30 +19,47 @@ class PublishToRedis
 
     public function __invoke(Event $event)
     {
+        // $order = $event->getOrder();
+
+        // // $channel = sprintf('order:%d:events', $order->getId());
+
+        // // TODO Add username (or "owner") to event payload to allow filtering events
+        // $message = [
+        //     'name' => $event::messageName(),
+        //     'data' => $event->toPayload(),
+        //     // FIXME We should retrieve the actual date from EventStore
+        //     'createdAt' => (new \DateTime())->format(\DateTime::ATOM),
+        // ];
+
+        $this->redis->publish(
+            $event::messageName(),
+            json_encode($this->createRedisMessage($event))
+        );
+
+        // if ($event instanceof Event\OrderCreated && $order->isFoodtech()) {
+
+        //     // TODO Deprecate this
+        //     $this->redis->publish(
+        //         sprintf('restaurant:%d:orders', $order->getRestaurant()->getId()),
+        //         $this->serializer->serialize($order, 'jsonld', ['groups' => ['order']])
+        //     );
+
+        //     $this->redis->publish(
+        //         'order:created',
+        //         $this->serializer->serialize($order, 'jsonld', ['groups' => ['order', 'place']])
+        //     );
+        // }
+    }
+
+    private function createRedisMessage(Event $event)
+    {
         $order = $event->getOrder();
 
-        $channel = sprintf('order:%d:events', $order->getId());
-
-        // TODO Add username (or "owner") to event payload to allow filtering events
-        $message = [
-            'name' => $event::messageName(),
+        return [
+            'order' => $this->serializer->serialize($order, 'jsonld', ['groups' => ['order', 'place']]),
             'data' => $event->toPayload(),
             // FIXME We should retrieve the actual date from EventStore
             'createdAt' => (new \DateTime())->format(\DateTime::ATOM),
         ];
-
-        $this->redis->publish($channel, json_encode($message));
-
-        if ($event instanceof Event\OrderCreated && $order->isFoodtech()) {
-            $this->redis->publish(
-                sprintf('restaurant:%d:orders', $order->getRestaurant()->getId()),
-                $this->serializer->serialize($order, 'jsonld', ['groups' => ['order']])
-            );
-
-            $this->redis->publish(
-                'order:created',
-                $this->serializer->serialize($order, 'jsonld', ['groups' => ['order', 'place']])
-            );
-        }
     }
 }

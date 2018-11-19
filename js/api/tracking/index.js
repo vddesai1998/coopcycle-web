@@ -74,17 +74,23 @@ const channels = {
     psubscribe: false,
     rooms: (message) => ['admins'],
   },
-  'restaurant:*:orders': {
-    toJSON: true,
-    psubscribe: true,
-    rooms: (message) => ['admins', `restaurants:${message.restaurant.id}`],
-  },
-  'order:*:events': {
-    toJSON: true,
-    psubscribe: true,
-    // TODO Send to admins, restaurant owners & customer
-    rooms: (message) => ['admins'],
-  },
+  // FIXME
+  // Now that only authorized users will receive events, PSUBSCRIBE is useless
+  // Instead, use the event name as channel name, and serialize the whole order
+  // 'restaurant:*:orders': {
+  //   toJSON: true,
+  //   psubscribe: true,
+  //   rooms: (message) => [
+  //     'admins',
+  //     `restaurants:${message.restaurant.id}`
+  //   ],
+  // },
+  // 'order:*:events': {
+  //   toJSON: true,
+  //   psubscribe: true,
+  //   // TODO Send to admins, restaurant owners & customer
+  //   rooms: (message) => ['admins'],
+  // },
   // 'user:*:notifications': {
   //   toJSON: true,
   //   psubscribe: true
@@ -96,8 +102,47 @@ const channels = {
   'order:created': {
     toJSON: true,
     psubscribe: false,
-    rooms: (message) => ['admins', `restaurants:${message.restaurant.id}`]
-  }
+    rooms: (message) => [
+      'admins',
+      `restaurants:${message.order.restaurant.id}`
+    ]
+  },
+  'order:accepted': {
+    toJSON: true,
+    psubscribe: false,
+    rooms: (message) => [
+      'admins',
+      `restaurants:${message.order.restaurant.id}`,
+      message.order.customer.username
+    ]
+  },
+  'order:picked': {
+    toJSON: true,
+    psubscribe: false,
+    rooms: (message) => [
+      'admins',
+      `restaurants:${message.order.restaurant.id}`,
+      message.order.customer.username
+    ]
+  },
+  'order:dropped': {
+    toJSON: true,
+    psubscribe: false,
+    rooms: (message) => [
+      'admins',
+      `restaurants:${message.order.restaurant.id}`,
+      message.order.customer.username
+    ]
+  },
+  'order:fulfilled': {
+    toJSON: true,
+    psubscribe: false,
+    rooms: (message) => [
+      'admins',
+      `restaurants:${message.order.restaurant.id}`,
+      message.order.customer.username
+    ]
+  },
 }
 
 sub.on('subscribe', (channel, count) => {
@@ -138,12 +183,6 @@ const authMiddleware = function(socket, next) {
         next();
       })
       .catch(e => next(new Error('Authentication error')))
-
-    // jwt.verify(socket.handshake.headers.authorization, cert, function(err, decoded) {
-    //   if (err) return next(new Error('Authentication error'));
-    //   socket.decoded = decoded;
-    //   next();
-    // });
 
   } else {
     next(new Error('Authentication error'));
@@ -215,6 +254,12 @@ function initialize() {
           }
         })
       }
+
+      socket.join(socket.user.username, (err) => {
+        if (!err) {
+          console.log(`user "${socket.user.username}" joined room "${socket.user.username}"`)
+        }
+      })
 
       // @see https://stackoverflow.com/questions/6563885/socket-io-how-do-i-get-a-list-of-connected-sockets-clients
       // @see https://socket.io/docs/emit-cheatsheet/
