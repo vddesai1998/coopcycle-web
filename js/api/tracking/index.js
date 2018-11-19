@@ -42,67 +42,61 @@ const channels = {
   'online': {
     toJSON: false,
     psubscribe: false,
-    // accessControl: 'admins'
+    rooms: (message) => ['admins'],
   },
   'offline': {
     toJSON: false,
     psubscribe: false,
-    // accessControl: 'admins'
+    rooms: (message) => ['admins'],
   },
   'tracking': {
     toJSON: true,
     psubscribe: false,
-    // accessControl: 'admins'
+    rooms: (message) => ['admins'],
   },
   'task:done': {
     toJSON: true,
     psubscribe: false,
-    // accessControl: 'admins'
+    rooms: (message) => ['admins'],
   },
   'task:failed': {
     toJSON: true,
     psubscribe: false,
-    // accessControl: 'admins'
+    rooms: (message) => ['admins'],
   },
   'task:created': {
     toJSON: true,
-    psubscribe: false
+    psubscribe: false,
+    rooms: (message) => ['admins'],
   },
   'task:cancelled': {
     toJSON: true,
-    psubscribe: false
+    psubscribe: false,
+    rooms: (message) => ['admins'],
   },
   'restaurant:*:orders': {
     toJSON: true,
-    psubscribe: true
-    // TODO
-    // Forward to
+    psubscribe: true,
+    rooms: (message) => ['admins', `restaurants:${message.restaurant.id}`],
   },
   'order:*:events': {
     toJSON: true,
-    psubscribe: true
-    // TODO
-    // Forward to admins + restaurant owner + customer
+    psubscribe: true,
+    // TODO Send to admins, restaurant owners & customer
+    rooms: (message) => ['admins'],
   },
-  'user:*:notifications': {
-    toJSON: true,
-    psubscribe: true
-  },
-  'user:*:notifications:count': {
-    toJSON: true,
-    psubscribe: true
-  },
+  // 'user:*:notifications': {
+  //   toJSON: true,
+  //   psubscribe: true
+  // },
+  // 'user:*:notifications:count': {
+  //   toJSON: true,
+  //   psubscribe: true
+  // },
   'order:created': {
     toJSON: true,
     psubscribe: false,
-    // TODO
-    // Forward to admins + restaurant owner
-    rooms: (message) => {
-      return [
-        'admins',
-        `restaurant:${message.restaurant.id}`
-      ]
-    }
+    rooms: (message) => ['admins', `restaurants:${message.restaurant.id}`]
   }
 }
 
@@ -156,6 +150,10 @@ const authMiddleware = function(socket, next) {
   }
 }
 
+function hasRole(user, role) {
+  return _.includes(user.roles, role)
+}
+
 function initialize() {
 
   sub.on('message', function(channelWithPrefix, message) {
@@ -165,23 +163,10 @@ function initialize() {
     const channel = sub.unprefixedChannel(channelWithPrefix)
     const { toJSON, rooms } = channels[channel]
 
-    // console.log('io.sockets', io.sockets)
-
-
-
     message = toJSON ? JSON.parse(message) : message
 
-    // console.log('RESOLVED ROOMS', rooms(message))
-
-    // io.in(rooms(message)).clients((err, clients) => {
-    //   console.log('clients in rooms', clients);
-    // });
-
-    // io.in(rooms(message)).emit(channel, message);
-
-    rooms(message).forEach(room => io.in(room).emit(channel, message))
-
     // io.sockets.emit(channel, toJSON ? JSON.parse(message) : message)
+    rooms(message).forEach(room => io.in(room).emit(channel, message))
 
   })
 
@@ -191,9 +176,12 @@ function initialize() {
 
     const channel = sub.unprefixedChannel(channelWithPrefix)
     const pattern = sub.unprefixedChannel(patternWithPrefix)
-    const { toJSON } = channels[pattern]
+    const { toJSON, rooms } = channels[pattern]
 
-    io.sockets.emit(channel, toJSON ? JSON.parse(message) : message)
+    message = toJSON ? JSON.parse(message) : message
+
+    // io.sockets.emit(channel, toJSON ? JSON.parse(message) : message)
+    rooms(message).forEach(room => io.in(room).emit(channel, message))
 
   })
 
@@ -205,14 +193,14 @@ function initialize() {
       console.log('socket.user', socket.user.toJSON())
 
       // When ROLE_RESTAURANT, load managed restaurants
-      if (_.includes(socket.user.roles, 'ROLE_RESTAURANT')) {
+      if (hasRole(socket.user, 'ROLE_RESTAURANT')) {
         socket.user.getRestaurants()
-          .then(restaurants => {
-            restaurants.forEach(restaurant => {
-              const roomName = `restaurant:${restaurant.get('id')}`
-              socket.join(roomName, (err) => {
+          .then(restaurants => restaurants.map(restaurant => `restaurants:${restaurant.get('id')}`))
+          .then(rooms => {
+            rooms.forEach(room => {
+              socket.join(room, (err) => {
                 if (!err) {
-                  console.log(`user "${socket.user.username}" joined room "${roomName}"`)
+                  console.log(`user "${socket.user.username}" joined room "${room}"`)
                 }
               })
             })
@@ -220,7 +208,7 @@ function initialize() {
       }
 
       // Add admins to dedicated room
-      if (_.includes(socket.user.roles, 'ROLE_ADMIN')) {
+      if (hasRole(socket.user, 'ROLE_ADMIN')) {
         socket.join('admins', (err) => {
           if (!err) {
             console.log(`user "${socket.user.username}" joined room "admins"`)
