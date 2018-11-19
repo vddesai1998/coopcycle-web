@@ -29,7 +29,6 @@ const server = http.createServer(function(request, response) {
     // process HTTP request. Since we're writing just WebSockets server
     // we don't have to implement anything.
 });
-// server.listen(process.env.PORT || 8001);
 
 const cert = fs.readFileSync(ROOT_DIR + '/var/jwt/public.pem')
 const tokenVerifier = new TokenVerifier(cert, db)
