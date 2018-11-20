@@ -20,6 +20,7 @@ class PublishToRedis
     public function __invoke(Event $event)
     {
         // TODO Deprecate channel "restaurant:*:orders"
+        // TODO How to manage non-foodtech orders?
 
         $this->redis->publish(
             $event::messageName(),
